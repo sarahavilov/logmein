@@ -1,0 +1,40 @@
+{
+  "name": "ilogmein",
+  "title": "Log Me In",
+  "id": "jid1-Ptzss5HIFsnISg",
+  "description": "An elegant in-page login manager similar to Opera's Wand login (Android and e10s Friendly).",
+  "author": "Sarah Avilov",
+  "license": "MPL 2.0",
+  "version": "0.1.2",
+  "icon": "data/icons/32.png",
+  "icon64": "data/icons/64.png",
+  "permissions": {
+    "private-browsing": true
+  },
+  "preferences": [
+    {
+      "type": "bool",
+      "name": "sort",
+      "value": true,
+      "title": "Sort logins alphabetically"
+    },
+    {
+        "type": "string",
+        "name": "pass-charset",
+        "value": "qwertyuioplkjhgfdsazxcvbnmQWERTYUIOPLKJHGFDSAZXCVBNM1234567890",
+        "title": "Password Generation Character set:"
+    },
+    {
+      "type": "integer",
+      "name": "pass-length",
+      "value": 12,
+      "title": "Password Generation Length:"
+    },
+    {
+      "type": "integer",
+      "name": "timeout",
+      "value": 60,
+      "title": "Hide the login button after (in seconds):"
+    }
+  ]
+}

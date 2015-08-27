@@ -1,0 +1,17 @@
+#ilogin-button {
+  position: fixed;
+  left: 20px;
+  top: 20px;
+  width: 80px;
+  height: 80px;
+  z-index: 2147483647;
+  border-radius: 50%;
+  background: #fff url('../icons/48.png') center center no-repeat;
+  border: 1px solid rgba(0, 0, 0, 0.2);
+  box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+  cursor: pointer;
+  opacity: 0.3;
+}
+#ilogin-button:hover {
+  opacity: 1.0;
+}

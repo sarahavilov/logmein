@@ -1,0 +1,24 @@
+body, table{
+  font-family: "helvetica neue","Helvetica",arial,sans-serif;
+  font-size: 12px;
+}
+#window,
+#password {
+  width: 120px;
+  height: 60px;
+  cursor: pointer;
+}
+#window:hover,
+#password:hover {
+  background-color: rgba(0, 0, 0, 0.05);
+}
+#window:active,
+#password:active {
+  background-color: rgba(0, 0, 0, 0.1);
+}
+#window {
+  background: url('window.png') center center no-repeat;
+}
+#password {
+  background: url('password.png') center center no-repeat;
+}
