@@ -29,12 +29,18 @@ function submit (o) {
   if (o.pass) {
     o.pass.value = o.credential.pass;
   }
-  var onsubmit = o.form.getAttribute('onsubmit');
-  if (onsubmit && onsubmit.indexOf('return false') === -1) {
-    o.form.onsubmit();
+  var button = o.form.querySelector('input[type=submit]');
+  if (button) {
+    button.click();
   }
   else {
-    o.form.submit();
+    var onsubmit = o.form.getAttribute('onsubmit');
+    if (onsubmit && onsubmit.indexOf('return false') === -1) {
+      o.form.onsubmit();
+    }
+    else {
+      o.form.submit();
+    }
   }
 }
 function choice () {
@@ -156,3 +162,7 @@ if (document.readyState === 'loading') {
 else {
   search();
 }
+
+self.port.on('choice', function () {
+  choice();
+});

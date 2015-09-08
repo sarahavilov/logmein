@@ -5,7 +5,7 @@
   "description": "An elegant in-page login manager similar to Opera's Wand login (Android and e10s Friendly).",
   "author": "Sarah Avilov",
   "license": "MPL 2.0",
-  "version": "0.1.2",
+  "version": "0.1.4",
   "icon": "data/icons/32.png",
   "icon64": "data/icons/64.png",
   "permissions": {
@@ -17,6 +17,13 @@
       "name": "sort",
       "value": true,
       "title": "Sort logins alphabetically"
+    },
+    {
+      "type": "string",
+      "name": "combo",
+      "value": "",
+      "title": "Login with keyboard shortcut (hotkey):",
+      "description": "Enter a combination of a-z keys with one or more modifiers. Examples of valid hotkeys: 'accel-s', 'meta-shift-i', 'control-alt-d'. Available modifiers: shift, alt, meta, control, accel, pageup, pagedown. On Macintosh, 'alt' is the Option key, 'meta' and 'accel' are the Command key. On Windows and Linux, 'accel' is the Control key."
     },
     {
         "type": "string",
@@ -34,7 +41,8 @@
       "type": "integer",
       "name": "timeout",
       "value": 60,
-      "title": "Hide the login button after (in seconds):"
+      "title": "Hide the login button after (in seconds):",
+      "description": "Minimum acceptable value is 10 seconds. Recommended value is 60 seconds."
     }
   ]
 }

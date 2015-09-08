@@ -28,7 +28,7 @@ var panel = panels.Panel({
   contentURL: self.data.url('panel/index.html'),
   contentScriptFile: self.data.url('panel/index.js'),
   width: 250,
-  height: 130,
+  height: 150,
   onHide: function () {
     button.state('window', {checked: false});
   }

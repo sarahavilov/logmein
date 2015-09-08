@@ -5,11 +5,14 @@ var self = require('sdk/self');
 var passwords = require('sdk/passwords');
 var platform = require('sdk/system').platform;
 var tabs = require('sdk/tabs');
+var timers = require('sdk/timers');
 var url = require('sdk/url');
 var sp = require('sdk/simple-prefs');
 var notifications = require('sdk/notifications');
+var array = require('sdk/util/array');
 var {Cc, Ci} = require('chrome');
 var {openDialog} = require('sdk/window/utils');
+var {Hotkey} = require('sdk/hotkeys');
 var {on, off, once, emit} = require('sdk/event/core');
 
 var prompts = Cc['@mozilla.org/embedcomp/prompt-service;1']
@@ -25,6 +28,8 @@ var app = (function (a) {
   return a;
 })({});
 
+var workers = [];
+
 pageMod.PageMod({
   include: '*',
   attachTo: ['existing', 'top', 'frame'],
@@ -35,6 +40,10 @@ pageMod.PageMod({
     timeout: sp.prefs.timeout
   },
   onAttach: function (worker) {
+    array.add(workers, worker);
+    worker.on('pageshow', function () { array.add(workers, this); });
+    worker.on('pagehide', function () { array.remove(workers, this); });
+    worker.on('detach', function () { array.remove(workers, this); });
     worker.port.on('get', function (obj) {
       passwords.search({
         url: obj.origin,
@@ -96,9 +105,64 @@ app.on('window', function () {
   });
 });
 
+/* hotkey */
+(function () {
+  var key;
+  function install () {
+    if (sp.prefs.combo) {
+      key = new Hotkey({
+        combo: sp.prefs.combo,
+        onPress: function () {
+          workers.filter(w => w.tab === tabs.activeTab).forEach(w => w.port.emit('choice'));
+        }
+      });
+    }
+  }
+  function destroy () {
+    if (key) {
+      key.destroy();
+    }
+  }
+  install();
+  sp.on('combo', function () {
+    destroy();
+    if (
+      sp.prefs.combo.indexOf('shift') !== -1 ||
+      sp.prefs.combo.indexOf('alt') !== -1 ||
+      sp.prefs.combo.indexOf('meta') !== -1 ||
+      sp.prefs.combo.indexOf('control') !== -1 ||
+      sp.prefs.combo.indexOf('accel') !== -1 ||
+      sp.prefs.combo.indexOf('pageup') !== -1 ||
+      sp.prefs.combo.indexOf('pagedown') !== -1
+    ) {
+      if (sp.prefs.combo.split('-').filter(a => a).length >= 2) {
+        install();
+      }
+    }
+  });
+})();
+
 /* prefs */
 sp.on('timeout', function () {
   if (sp.prefs.timeout < 10) {
     sp.prefs.timeout = 60;
   }
-})
+});
+
+/* welcome */
+exports.main = function (options) {
+  if (options.loadReason === 'install' || options.loadReason === 'startup') {
+    var version = sp.prefs.version;
+    if (self.version !== version) {
+      if (true) {
+        timers.setTimeout(function () {
+          tabs.open(
+            'http://firefox.add0n.com/logmein.html?v=' + self.version +
+            (version ? '&p=' + version + '&type=upgrade' : '&type=install')
+          );
+        }, 3000);
+      }
+      sp.prefs.version = self.version;
+    }
+  }
+};

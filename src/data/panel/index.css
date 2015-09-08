@@ -1,11 +1,12 @@
 body, table{
   font-family: "helvetica neue","Helvetica",arial,sans-serif;
   font-size: 12px;
+  background-color: #fff;
 }
 #window,
 #password {
   width: 120px;
-  height: 60px;
+  height: 80px;
   cursor: pointer;
 }
 #window:hover,
