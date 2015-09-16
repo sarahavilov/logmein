@@ -72,7 +72,7 @@ function choice () {
       });
       self.port.emit('select', elems.map(function (o) {
         var i = forms.indexOf(o.form);
-        return '[' + (i === -1 ? 'no-color' : colors[i]) + '] ' + o.credential.user;
+        return o.credential.user[0].toUpperCase() + ' - [' + (i === -1 ? 'no-color' : colors[i]) + '] ' + o.credential.user;
       }));
     }
   }
@@ -143,7 +143,7 @@ self.port.on('credentials', function (cs) {
 });
 
 function search () {
-  if (!document || !document.location) {
+  if (!document || !document.location || !document.location.origin) {
     return;
   }
   self.port.emit('get', {
@@ -160,7 +160,9 @@ if (document.readyState === 'loading') {
   }
 }
 else {
-  search();
+  if (document.readyState !== 'interactive') {
+    search();
+  }
 }
 
 self.port.on('choice', function () {

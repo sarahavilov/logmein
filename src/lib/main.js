@@ -10,6 +10,7 @@ var url = require('sdk/url');
 var sp = require('sdk/simple-prefs');
 var notifications = require('sdk/notifications');
 var array = require('sdk/util/array');
+var events = require('sdk/system/events');
 var {Cc, Ci} = require('chrome');
 var {openDialog} = require('sdk/window/utils');
 var {Hotkey} = require('sdk/hotkeys');
@@ -17,6 +18,8 @@ var {on, off, once, emit} = require('sdk/event/core');
 
 var prompts = Cc['@mozilla.org/embedcomp/prompt-service;1']
   .getService(Ci.nsIPromptService);
+var nsILoginManager = Cc['@mozilla.org/login-manager;1'].getService(Ci.nsILoginManager);
+
 var desktop = ['winnt', 'linux', 'darwin'].indexOf(platform) !== -1;
 var app = (function (a) {
   a.on = on.bind(null, a);
@@ -30,52 +33,63 @@ var app = (function (a) {
 
 var workers = [];
 
-pageMod.PageMod({
-  include: '*',
-  attachTo: ['existing', 'top', 'frame'],
-  contentScriptWhen: 'start',
-  contentScriptFile: self.data.url('inject/button.js'),
-  contentStyleFile: self.data.url('inject/button.css'),
-  contentScriptOptions: {
-    timeout: sp.prefs.timeout
-  },
-  onAttach: function (worker) {
-    array.add(workers, worker);
-    worker.on('pageshow', function () { array.add(workers, this); });
-    worker.on('pagehide', function () { array.remove(workers, this); });
-    worker.on('detach', function () { array.remove(workers, this); });
-    worker.port.on('get', function (obj) {
-      passwords.search({
-        url: obj.origin,
-        onComplete: function onComplete (credentials) {
-          if (sp.prefs.sort) {
-            credentials = credentials.sort((a, b) => a.username > b.username);
+// Log-Me-In is not going to ask for master password,
+// instead it injects the button whenever master password is requested by Firefox itself
+(function (inject) {
+  if (nsILoginManager.isLoggedIn === true) {
+    inject();
+  }
+  else {
+    events.once('passwordmgr-crypto-login', inject);
+  }
+})(function () {
+  pageMod.PageMod({
+    include: ['http://*', 'https://*'],
+    attachTo: ['existing', 'top', 'frame'],
+    contentScriptWhen: 'start',
+    contentScriptFile: self.data.url('inject/button.js'),
+    contentStyleFile: self.data.url('inject/button.css'),
+    contentScriptOptions: {
+      timeout: sp.prefs.timeout
+    },
+    onAttach: function (worker) {
+      array.add(workers, worker);
+      worker.on('pageshow', function () { array.add(workers, this); });
+      worker.on('pagehide', function () { array.remove(workers, this); });
+      worker.on('detach', function () { array.remove(workers, this); });
+      worker.port.on('get', function (obj) {
+        passwords.search({
+          url: obj.origin,
+          onComplete: function onComplete (credentials) {
+            if (sp.prefs.sort) {
+              credentials = credentials.sort((a, b) => a.username > b.username);
+            }
+            worker.port.emit('credentials', credentials);
           }
-          worker.port.emit('credentials', credentials);
+        });
+      });
+      worker.port.on('select', function (array) {
+        let selected = {};
+        let result = prompts.select(
+          null,
+          'Multiple Logins available',
+          'Color coded usernames:',
+          array.length,
+          array,
+          selected
+        );
+        if (result) {
+          worker.port.emit('select-result', selected);
         }
       });
-    });
-    worker.port.on('select', function (array) {
-      let selected = {};
-      let result = prompts.select(
-        null,
-        'Multiple Logins available',
-        'Color coded usernames:',
-        array.length,
-        array,
-        selected
-      );
-      if (result) {
-        worker.port.emit('select-result', selected);
-      }
-    });
-    worker.port.on('badge', function (num) {
-      app.emit('badge', {
-        id: worker.tab.id,
-        badge: num
+      worker.port.on('badge', function (num) {
+        app.emit('badge', {
+          id: worker.tab.id,
+          badge: num
+        });
       });
-    });
-  }
+    }
+  });
 });
 
 if (desktop) {
