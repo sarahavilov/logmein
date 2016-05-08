@@ -4,15 +4,37 @@
 var credentials, logins;
 
 function map (c) {
-  let ps = document.querySelectorAll('[name="' + c.usernameField + '"]');
-  if (!ps.length) {
-    ps = document.querySelectorAll('[name="' + c.passwordField + '"]');
-  }
-  let forms = [].map.call(ps, p => p.form).filter(f => f);
+
+  let forms = [].slice.call(document.querySelectorAll('[name="' + c.usernameField + '"]'))
+    .concat([].slice.call(document.querySelectorAll('[name="' + c.passwordField + '"]')))
+    .map(p => p.form)
+    .filter(f => f)
+    .filter((f, i, l) => l.indexOf(f) === i);
+
   return forms.map(function (f) {
     return {
-      user: f.querySelector('[name="' + c.usernameField + '"]'),
-      pass: f.querySelector('[name="' + c.passwordField + '"]'),
+      get user () {
+        return f.querySelector('[name="' + c.usernameField + '"]') ||
+          f.querySelector('[name*="email"]') ||
+          f.querySelector('[name*="username"]') ||
+          f.querySelector('[name*="fullname"]') ||
+          f.querySelector('[name*="email"]') ||
+          f.querySelector('[name*="Email"]') ||
+          f.querySelector('[name*="Login"]') ||
+          f.querySelector('[name*="login"]') ||
+          f.querySelector('[name*="USER"]') ||
+          f.querySelector('[name*="User"]') ||
+          f.querySelector('[name*="user"]');
+      },
+      get pass () {
+        return f.querySelector('[name="' + c.passwordField + '"]') ||
+          f.querySelector('[name*="pw"]') ||
+          f.querySelector('[name*="pwd"]') ||
+          f.querySelector('[name*="PASSWORD"]') ||
+          f.querySelector('[name*="Password"]') ||
+          f.querySelector('[name*="pass"]') ||
+          f.querySelector('[name*="PassWord"]');
+      },
       form: f,
       credential: {
         user: c.username,
@@ -25,9 +47,17 @@ function map (c) {
 function submit (o) {
   if (o.user) {
     o.user.value = o.credential.user;
+    o.user.dispatchEvent(new Event('change'));
+    o.user.dispatchEvent(new Event('keydown'));
+    o.user.dispatchEvent(new Event('keyup'));
+    o.user.dispatchEvent(new Event('keychange'));
   }
   if (o.pass) {
     o.pass.value = o.credential.pass;
+    o.pass.dispatchEvent(new Event('change'));
+    o.pass.dispatchEvent(new Event('keydown'));
+    o.pass.dispatchEvent(new Event('keyup'));
+    o.pass.dispatchEvent(new Event('keychange'));
   }
   var button = o.form.querySelector('input[type=submit]');
   if (button) {

@@ -1,13 +1,16 @@
 {
   "name": "ilogmein",
   "title": "Log Me In",
-  "id": "jid1-Ptzss5HIFsnISg",
+  "id": "jid1-Ptzss5HIFsnISg@jetpack",
   "description": "An elegant in-page login manager similar to Opera's Wand login (Android and e10s Friendly).",
   "author": "Sarah Avilov",
   "license": "MPL 2.0",
-  "version": "0.1.4",
-  "icon": "data/icons/32.png",
-  "icon64": "data/icons/64.png",
+  "version": "0.1.8",
+  "main": "./lib/main.js",
+  "engines": {
+    "firefox": ">=29.0",
+    "fennec": ">=29.0"
+  },
   "permissions": {
     "private-browsing": true
   },
