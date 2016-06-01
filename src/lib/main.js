@@ -64,7 +64,10 @@ var workers = [];
             if (sp.prefs.sort) {
               credentials = credentials.sort((a, b) => a.username > b.username);
             }
-            worker.port.emit('credentials', credentials);
+            // make sure worker is still available
+            if (array.has(workers, worker)) {
+              worker.port.emit('credentials', credentials);
+            }
           }
         });
       });
@@ -83,10 +86,12 @@ var workers = [];
         }
       });
       worker.port.on('badge', function (num) {
-        app.emit('badge', {
-          id: worker.tab.id,
-          badge: num
-        });
+        if (worker.tab) {
+          app.emit('badge', {
+            id: worker.tab.id,
+            badge: num
+          });
+        }
       });
     }
   });
