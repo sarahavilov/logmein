@@ -192,15 +192,27 @@ function once () {
   document.removeEventListener('visibilitychange', once, false);
   search();
 }
-if (document.hidden === false && document.body) {
-  search();
+function init () {
+  document.removeEventListener('DOMContentLoaded', init);
+  if (document.hidden === false && document.body) {
+    search();
+  }
+  else {
+    document.addEventListener('visibilitychange', once, false);
+    self.port.on('detach', () => {
+      try {
+        document.removeEventListener('visibilitychange', once, false);
+      }
+      catch (e) {}
+    });
+  }
+}
+
+if (document.readyState === 'loading') {
+  document.addEventListener('DOMContentLoaded', init);
 }
 else {
-  document.addEventListener('visibilitychange', once, false);
-  self.port.on('detach', () => {
-    try {
-      document.removeEventListener('visibilitychange', once, false);
-    }
-    catch (e) {}
-  });
+  init();
 }
+
+
