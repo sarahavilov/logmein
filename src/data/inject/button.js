@@ -175,10 +175,11 @@ function search () {
   if (!document || !document.location || !document.location.origin) {
     return;
   }
-  self.port.emit('get', {
-    origin: document.location.origin
-  });
-  document.removeEventListener('DOMContentLoaded', search, false);
+  if (document.forms.length) {
+    self.port.emit('get', {
+      origin: document.location.origin
+    });
+  }
 }
 
 self.port.on('choice', () => choice());
@@ -191,20 +192,15 @@ function once () {
   document.removeEventListener('visibilitychange', once, false);
   search();
 }
-if (document.hidden === false && document.readyState !== 'interactive') {
+if (document.hidden === false && document.body) {
   search();
 }
 else {
-  if (document.body && document.hidden === false) {
-    search();
-  }
-  else {
-    document.addEventListener('visibilitychange', once, false);
-    self.port.on('detach', () => {
-      try {
-        document.removeEventListener('visibilitychange', once, false);
-      }
-      catch (e) {}
-    });
-  }
+  document.addEventListener('visibilitychange', once, false);
+  self.port.on('detach', () => {
+    try {
+      document.removeEventListener('visibilitychange', once, false);
+    }
+    catch (e) {}
+  });
 }

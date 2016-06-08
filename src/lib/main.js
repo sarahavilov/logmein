@@ -65,7 +65,7 @@ var workers = [];
               credentials = credentials.sort((a, b) => a.username > b.username);
             }
             // make sure worker is still available
-            if (array.has(workers, worker)) {
+            if (array.has(workers, worker) && credentials.length) {
               worker.port.emit('credentials', credentials);
             }
           }
