@@ -4,7 +4,6 @@
 var credentials, logins;
 
 function map (c) {
-
   let forms = [].slice.call(document.querySelectorAll('[name="' + c.usernameField + '"]'))
     .concat([].slice.call(document.querySelectorAll('[name="' + c.passwordField + '"]')))
     .map(p => p.form)
@@ -181,20 +180,31 @@ function search () {
   });
   document.removeEventListener('DOMContentLoaded', search, false);
 }
-if (document.readyState === 'loading') {
-  if (document.body) {
+
+self.port.on('choice', () => choice());
+
+/* optimal loading */
+function once () {
+  if (document.hidden === true) {
+    return;
+  }
+  document.removeEventListener('visibilitychange', once, false);
+  search();
+}
+if (document.hidden === false && document.readyState !== 'interactive') {
+  search();
+}
+else {
+  if (document.body && document.hidden === false) {
     search();
   }
   else {
-    document.addEventListener('DOMContentLoaded', search, false);
+    document.addEventListener('visibilitychange', once, false);
+    self.port.on('detach', () => {
+      try {
+        document.removeEventListener('visibilitychange', once, false);
+      }
+      catch (e) {}
+    });
   }
 }
-else {
-  if (document.readyState !== 'interactive') {
-    search();
-  }
-}
-
-self.port.on('choice', function () {
-  choice();
-});

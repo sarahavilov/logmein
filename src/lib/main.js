@@ -132,7 +132,6 @@ app.on('window', function () {
       key = new Hotkey({
         combo: sp.prefs.combo,
         onPress: function () {
-          console.error('log-me-in is called from Hotkey.');
           workers.filter(w => w.tab === tabs.activeTab).forEach(w => w.port.emit('choice'));
         }
       });

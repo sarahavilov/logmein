@@ -5,7 +5,7 @@
   "description": "An elegant in-page login manager similar to Opera's Wand login (Android and e10s Friendly).",
   "author": "Sarah Avilov",
   "license": "MPL 2.0",
-  "version": "0.1.9",
+  "version": "0.2.0b1",
   "main": "./lib/main.js",
   "engines": {
     "firefox": ">=29.0",
