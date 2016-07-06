@@ -62,7 +62,7 @@ var workers = [];
           url: obj.origin,
           onComplete: function onComplete (credentials) {
             if (sp.prefs.sort) {
-              credentials = credentials.sort((a, b) => a.username > b.username);
+              credentials = credentials.sort((a, b) => a.username.toLowerCase() > b.username.toLowerCase());
             }
             // make sure worker is still available
             if (array.has(workers, worker)) {

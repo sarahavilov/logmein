@@ -4,35 +4,22 @@
 var credentials, logins;
 
 function map (c) {
-  let forms = [].slice.call(document.querySelectorAll('[name="' + c.usernameField + '"]'))
-    .concat([].slice.call(document.querySelectorAll('[name="' + c.passwordField + '"]')))
+  let forms = Array.from(document.querySelectorAll('input[type=password]'))
     .map(p => p.form)
     .filter(f => f)
     .filter((f, i, l) => l.indexOf(f) === i);
-
   return forms.map(function (f) {
     return {
       get user () {
         return f.querySelector('[name="' + c.usernameField + '"]') ||
-          f.querySelector('[name*="email"]') ||
-          f.querySelector('[name*="username"]') ||
-          f.querySelector('[name*="fullname"]') ||
-          f.querySelector('[name*="email"]') ||
-          f.querySelector('[name*="Email"]') ||
-          f.querySelector('[name*="Login"]') ||
-          f.querySelector('[name*="login"]') ||
-          f.querySelector('[name*="USER"]') ||
-          f.querySelector('[name*="User"]') ||
-          f.querySelector('[name*="user"]');
+          Array.from(f.querySelectorAll('input:not([type=password]):not([disabled])'))
+            .filter(i => (i.type === 'text' || i.type === 'email') && i.getBoundingClientRect().width).shift();
       },
       get pass () {
         return f.querySelector('[name="' + c.passwordField + '"]') ||
-          f.querySelector('[name*="pw"]') ||
-          f.querySelector('[name*="pwd"]') ||
-          f.querySelector('[name*="PASSWORD"]') ||
-          f.querySelector('[name*="Password"]') ||
-          f.querySelector('[name*="pass"]') ||
-          f.querySelector('[name*="PassWord"]');
+          Array.from(f.querySelectorAll('input[type=password]')).filter(i => {
+            return i.getBoundingClientRect().width;
+          }).shift();
       },
       form: f,
       credential: {
@@ -58,7 +45,7 @@ function submit (o) {
     o.pass.dispatchEvent(new Event('keyup'));
     o.pass.dispatchEvent(new Event('keychange'));
   }
-  var button = o.form.querySelector('input[type=submit]');
+  var button = o.form.querySelector('input[type=submit]') || o.form.querySelector('[type=submit]');
   if (button) {
     button.click();
   }
@@ -72,6 +59,7 @@ function submit (o) {
     }
   }
 }
+
 function choice () {
   var elems = credentials.map(map);
   elems = [].concat.apply([], elems);
@@ -98,6 +86,9 @@ function choice () {
         if (elem.pass) {
           elem.pass.style['box-shadow'] = '0px 0px 3px ' + colors[i];
         }
+        if (elem.form) {
+          elem.pass.style['box-shadow'] = '0px 0px 3px ' + colors[i];
+        }
       });
       self.port.emit('select', elems.map(function (o) {
         var i = forms.indexOf(o.form);
@@ -106,6 +97,8 @@ function choice () {
     }
   }
 }
+self.port.on('choice', () => choice());
+
 self.port.on('select-result', function (result) {
   submit(logins[result.value]);
 });
@@ -134,6 +127,13 @@ function showKey () {
 self.port.on('detach', removeKey);
 
 function isLogIn (cs) {
+  let passwords = Array.from(document.querySelectorAll('[type=password]'))
+    .filter(e => e.getBoundingClientRect().width)
+    .map(e => e.form).filter(f => f).length;
+  if (passwords) {
+    return true;
+  }
+  // Google like passwords
   // First look at the password fields
   for (let i = 0; i < cs.length; i++) {
     if (!cs[i].passwordField) {
@@ -171,18 +171,39 @@ self.port.on('credentials', function (cs) {
   }
 });
 
+var count = 0;
+var timer;
+var observer;
 function search () {
   if (!document || !document.location || !document.location.origin) {
     return;
   }
-  if (document.forms.length) {
+  let tmp = document.forms.length;
+  if (tmp > count) {
+    count = tmp;
     self.port.emit('get', {
       origin: document.location.origin
     });
   }
 }
 
-self.port.on('choice', () => choice());
+function obs () {
+  if (observer) {
+    return;
+  }
+  // dynamic loads
+  observer = new MutationObserver(function () {
+    window.clearTimeout(search);
+    timer = window.setTimeout(search, 1000);
+  });
+  observer.observe(document.body, {
+    attributes: false,
+    childList: true,
+    characterData: false
+  });
+  self.port.on('detach', () => observer.disconnect());
+  search();
+}
 
 /* optimal loading */
 function once () {
@@ -190,12 +211,12 @@ function once () {
     return;
   }
   document.removeEventListener('visibilitychange', once, false);
-  search();
+  obs();
 }
 function init () {
   document.removeEventListener('DOMContentLoaded', init);
   if (document.hidden === false && document.body) {
-    search();
+    obs();
   }
   else {
     document.addEventListener('visibilitychange', once, false);
@@ -214,5 +235,3 @@ if (document.readyState === 'loading') {
 else {
   init();
 }
-
-
